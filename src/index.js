@@ -145,4 +145,5 @@ module.exports = () => ({
     validateAndPublish(req);
     return (next());
   },
+
 });
