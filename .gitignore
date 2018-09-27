@@ -1,0 +1,11 @@
+node_modules
+*~
+*#
+logfile
+.DS_STORE
+.DS_Store
+._*
+.netbeans
+nbproject
+.idea
+.node_history
