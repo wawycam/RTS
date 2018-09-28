@@ -1,4 +1,5 @@
 import request from 'request';
+import async from 'async';
 import Logger from './utils/logger';
 
 import Connection from './connection';
@@ -102,6 +103,45 @@ module.exports = () => ({
         serial,
       },
     }).then(data => data);
+  },
+  uploadTrack: (cameraTrackId, serial, geoData, socket) => {
+    async.eachSeries(geoData, (data, callback) => {
+      uploader(camera, `/home/pi/wawycam/api/snap/${data.media.file}`, (percent) => {
+        socket.emit('sync:progress', { media: data.media.file, percent });
+        if (percent === 'uploaded') {
+          apolloClient.mutate({
+            mutation: mutation.POST_TRACK_ID,
+            variables: {
+              cameraTrackId,
+              camera: serial,
+              geoData: {
+                location: {
+                  coordinates: [
+                    data.latitude,
+                    data.longitude,
+                  ],
+                  type: 'Point',
+                },
+                media: {
+                  type: (data.media) ? data.media.type : null,
+                  file: (data.media) ? data.media.file : null,
+                },
+                speed: data.speed,
+                heading: data.heading,
+                altitude: data.altitude,
+                accuracy: data.accuracy,
+                createdAt: data.createdAt,
+              },
+            },
+          }).then((result) => {
+            Logger.info(result.data);
+            callback();
+          }).catch(error => Logger.error(error));
+        }
+      });
+    }, () => {
+      socket.emit('sync:done');
+    });
   },
   camera: (status, file) => {
     switch (status) {
