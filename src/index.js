@@ -98,6 +98,7 @@ module.exports = () => ({
   syncTrack: (cameraTrackId, serial) => {
     return apolloClient.query({
       query: query.GET_TRACK,
+      fetchPolicy: 'no-cache',
       variables: {
         cameraTrackId,
         serial,
